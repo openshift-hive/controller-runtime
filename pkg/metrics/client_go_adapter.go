@@ -33,7 +33,6 @@ import (
 // Metrics subsystem and all of the keys used by the rest client.
 const (
 	RestClientSubsystem = "rest_client"
-	LatencyKey          = "request_latency_seconds"
 	ResultKey           = "requests_total"
 )
 
@@ -52,13 +51,6 @@ const (
 
 var (
 	// client metrics
-	requestLatency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Subsystem: RestClientSubsystem,
-		Name:      LatencyKey,
-		Help:      "Request latency in seconds. Broken down by verb and URL.",
-		Buckets:   prometheus.ExponentialBuckets(0.001, 2, 10),
-	}, []string{"verb", "url"})
-
 	requestResult = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Subsystem: RestClientSubsystem,
 		Name:      ResultKey,
@@ -127,13 +119,11 @@ func init() {
 // registerClientMetrics sets up the client latency metrics from client-go
 func registerClientMetrics() {
 	// register the metrics with our registry
-	Registry.MustRegister(requestLatency)
 	Registry.MustRegister(requestResult)
 
 	// register the metrics with client-go
 	clientmetrics.Register(clientmetrics.RegisterOpts{
-		RequestLatency: &latencyAdapter{metric: requestLatency},
-		RequestResult:  &resultAdapter{metric: requestResult},
+		RequestResult: &resultAdapter{metric: requestResult},
 	})
 }
 
